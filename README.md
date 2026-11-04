@@ -25,6 +25,9 @@ Each `PERF` line in the GEMM testbench reports `preload_cycles` for host A/B wri
 
 ## Software command interface
 
+For firmware integration and the complete instruction sequence, see the
+**[Laymo RV32 instruction guide](docs/laymo-rv32-instruction-guide.md)**.
+
 [`laymo_accelerator`](rtl/laymo_accelerator.sv) accepts one command at a time through `cmd_valid/cmd_ready`. A command captures dimensions, matrix bases, and an external byte address at acceptance. `cmd_done` pulses when all transfers or GEMM writes finish; `cmd_error` pulses with `cmd_done` for an invalid opcode, out-of-range scratchpad coordinates, or a misaligned external address/stride. The opcodes in [`laymo_command_pkg`](rtl/laymo_command_pkg.sv) are `LOAD_A=1`, `LOAD_B=2`, `GEMM=3`, and `STORE_C=4`.
 
 | Command | Scratchpad coordinates used | External transfer |
