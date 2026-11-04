@@ -5,8 +5,8 @@ GEMM_RTL = rtl/mac.sv rtl/systolic_array.sv rtl/skew_buffer.sv \
 	rtl/gemm_scratchpad.sv rtl/gemm_engine.sv
 GEMM_TIMER = $(abspath rtl/dv/wall_clock.cpp)
 
-.PHONY: test test-int32 test-array test-array-small test-fp32 test-gemm-small test-gemm-128 test-gemm-1000 test-gemm-tall test-command test-riscv-custom
-test: test-int32 test-array-small test-fp32 test-gemm-small test-command test-riscv-custom
+.PHONY: test test-int32 test-array test-array-small test-fp32 test-gemm-small test-gemm-128 test-gemm-1000 test-gemm-tall test-command test-riscv-custom test-riscv-cpp
+test: test-int32 test-array-small test-fp32 test-gemm-small test-command test-riscv-custom test-riscv-cpp
 
 test-int32:
 	$(VERILATOR) --binary --timing --Wall --top-module tb_mac --Mdir build/int32 -o tb_mac rtl/mac.sv rtl/dv/tb_mac.sv
@@ -47,3 +47,7 @@ test-command:
 test-riscv-custom:
 	$(VERILATOR) --binary --timing --Wall -j 4 --top-module tb_laymo_riscv_custom --Mdir build/riscv-custom -o tb_laymo_riscv_custom rtl/laymo_command_pkg.sv $(GEMM_RTL) rtl/laymo_accelerator.sv rtl/laymo_riscv_custom.sv rtl/dv/tb_laymo_riscv_custom.sv
 	./build/riscv-custom/tb_laymo_riscv_custom
+
+test-riscv-cpp:
+	$(VERILATOR) --cc --exe --build --Wall -j 4 -GN=4 -GMAX_M=10 -GMAX_P=10 -GMAX_K=8 --top-module laymo_riscv_custom --Mdir build/riscv-cpp -o tb_laymo_riscv_cpp rtl/laymo_command_pkg.sv $(GEMM_RTL) rtl/laymo_accelerator.sv rtl/laymo_riscv_custom.sv rtl/dv/tb_laymo_riscv_custom.cpp
+	./build/riscv-cpp/tb_laymo_riscv_cpp

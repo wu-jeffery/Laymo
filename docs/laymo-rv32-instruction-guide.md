@@ -83,6 +83,32 @@ and external destination before storing if needed.
   addresses or strides report `inst_error`. The C helpers return `void`, so
   the CPU integration must turn that signal into a visible fault or status.
 
+`MAX_M`, `MAX_P`, and `MAX_K` determine the physical scratchpad storage at RTL
+build time. Software may use any dimensions within that built capacity, but
+cannot enlarge it by setting larger `M`, `P`, or `K`: an over-capacity command
+returns `inst_error`. Array tiling handles matrices wider than the physical
+`N×N` PE array when they still fit in the scratchpad. To run matrices larger
+than a fixed scratchpad, Laymo needs external-memory tile streaming and
+partial-result accumulation across K blocks.
+
+## Run the C++ instruction-port test
+
+From the repository root, run:
+
+```sh
+make test-riscv-cpp
+```
+
+This builds the RTL with Verilator and runs
+[`tb_laymo_riscv_custom.cpp`](../rtl/dv/tb_laymo_riscv_custom.cpp) as a small
+CPU and external-memory model. The C++ driver constructs actual RV32
+`custom-0` instruction words, sends `SET_*`, `LOAD_A`, `LOAD_B`, `GEMM`, and
+`STORE_C`, checks 15 results, and checks that exceeding the built `MAX_M`,
+`MAX_P`, or `MAX_K` reports an error. Its build uses `N=4`, `MAX_M=10`,
+`MAX_P=10`, and `MAX_K=8`
+so it runs quickly. It exercises the hardware interface in simulation; it
+does not execute instructions on a physical RV32 CPU or FPGA.
+
 The implementation is in [`rtl/laymo_riscv_custom.sv`](../rtl/laymo_riscv_custom.sv)
 and [`rtl/laymo_accelerator.sv`](../rtl/laymo_accelerator.sv). The tested
 instruction sequence is in

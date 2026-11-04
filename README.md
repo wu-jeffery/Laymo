@@ -2,7 +2,7 @@ Laymo is a project to build a custom hardware accelerator for LiDAR-based 3D obj
 
 ## Tests
 
-The integer MAC and systolic-array testbenches are in [`rtl/dv`](rtl/dv). The general [`tb_gemm_engine`](rtl/dv/tb_gemm_engine.sv) bench contains eight quick cases at `N=4` and three cases at `N=128`. Run `make test` for the quick suite, `make test-array` for the standalone 128×128 array, `make test-gemm-128` for a tiled 129×129 by 129×130 GEMM, or `make test-gemm-1000` for the 129×130, 257×513, and 1000×1000 cases on the 128×128 array. The 1000×1000 case checks every million-element result against a closed-form reference. Each GEMM case reports preload and execution cycles, host runtime, and effective MAC utilization.
+The integer MAC and systolic-array testbenches are in [`rtl/dv`](rtl/dv). The general [`tb_gemm_engine`](rtl/dv/tb_gemm_engine.sv) bench contains eight quick cases at `N=4` and three cases at `N=128`. Run `make test` for the quick suite, `make test-array` for the standalone 128×128 array, `make test-gemm-128` for a tiled 129×129 by 129×130 GEMM, or `make test-gemm-1000` for the 129×130, 257×513, and 1000×1000 cases on the 128×128 array. Run `make test-riscv-cpp` for a C++ driver that sends custom instruction words into the Verilated RTL. The 1000×1000 case checks every million-element result against a closed-form reference. Each GEMM case reports preload and execution cycles, host runtime, and effective MAC utilization.
 
 ## Tiled integer GEMM
 
