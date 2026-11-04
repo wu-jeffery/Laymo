@@ -6,6 +6,8 @@ module mac (
     input  logic               rst_n,
     input  logic               enable,
     input  logic               clear,
+    input  logic               drain,
+    input  logic signed [63:0] drain_in,
     input  logic signed [31:0] a,
     input  logic signed [31:0] b,
     output logic signed [63:0] acc
@@ -19,6 +21,8 @@ module mac (
             acc <= '0;
         else if (clear)
             acc <= '0;
+        else if (drain)
+            acc <= drain_in;
         else if (enable)
             acc <= acc + product;
     end

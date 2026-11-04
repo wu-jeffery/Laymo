@@ -5,6 +5,8 @@ module tb_mac;
     logic rst_n = 1'b0;
     logic enable = 1'b0;
     logic clear = 1'b0;
+    logic drain = 1'b0;
+    logic signed [63:0] drain_in = '0;
     logic signed [31:0] a = '0;
     logic signed [31:0] b = '0;
     logic signed [63:0] acc;
@@ -61,6 +63,19 @@ module tb_mac;
         #1;
         check_acc();
         rst_n = 1'b1;
+
+        @(negedge clk);
+        drain = 1'b1;
+        drain_in = 64'sd42;
+        enable = 1'b1;
+        clear = 1'b0;
+        @(posedge clk);
+        #1;
+        expected = 64'sd42;
+        check_acc();
+        @(negedge clk);
+        drain = 1'b0;
+        enable = 1'b0;
 
         for (int i = 0; i < 1000; i++)
             step(1'($urandom % 4 != 0), 1'(i % 137 == 0), $urandom, $urandom);

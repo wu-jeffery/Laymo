@@ -9,11 +9,12 @@ module tb_systolic_array #(
     logic clk;
     logic rst_n = 1'b0;
     logic clear = 1'b0;
+    logic drain = 1'b0;
     logic signed [31:0] a_in [N];
     logic a_valid [N];
     logic signed [31:0] b_in [N];
     logic b_valid [N];
-    logic signed [63:0] c_out [N][N];
+    logic signed [63:0] read_row_data [N];
 
     logic signed [31:0] matrix_a [N][K];
     logic signed [31:0] matrix_b [K][N];
@@ -26,18 +27,25 @@ module tb_systolic_array #(
     task automatic check_matrix(input int case_number);
         for (int r = 0; r < N; r++) begin
             for (int c = 0; c < N; c++) begin
-                if (c_out[r][c] !== expected[r][c])
+                if (read_row_data[c] !== expected[r][c])
                     $fatal(1, "case %0d C[%0d][%0d]: expected %016x, got %016x",
-                           case_number, r, c, expected[r][c], c_out[r][c]);
+                           case_number, r, c, expected[r][c], read_row_data[c]);
                 checks++;
             end
+            @(negedge clk);
+            drain = 1'b1;
+            @(posedge clk);
+            #1;
         end
+        @(negedge clk);
+        drain = 1'b0;
     endtask
 
     task automatic run_case(input int case_number);
         // Clear both accumulators and the operand pipelines between matrices.
         @(negedge clk);
         clear = 1'b1;
+        drain = 1'b0;
         for (int i = 0; i < N; i++) begin
             a_in[i] = '0;
             b_in[i] = '0;
@@ -46,10 +54,9 @@ module tb_systolic_array #(
         end
         @(posedge clk);
         #1;
-        for (int r = 0; r < N; r++)
-            for (int c = 0; c < N; c++)
-                if (c_out[r][c] !== 64'b0)
-                    $fatal(1, "case %0d: clear failed at C[%0d][%0d]", case_number, r, c);
+        for (int c = 0; c < N; c++)
+            if (read_row_data[c] !== 64'b0)
+                $fatal(1, "case %0d: clear failed at C[0][%0d]", case_number, c);
 
         for (int r = 0; r < N; r++) begin
             for (int k = 0; k < K; k++)

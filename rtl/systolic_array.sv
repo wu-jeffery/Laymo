@@ -10,12 +10,14 @@ module systolic_array #(
     input  logic               clk,
     input  logic               rst_n,
     input  logic               clear,
+    input  logic               drain,
     input  logic signed [31:0] a_in [N],
     input  logic               a_valid [N],
     input  logic signed [31:0] b_in [N],
     input  logic               b_valid [N],
-    output logic signed [63:0] c_out [N][N]
+    output logic signed [63:0] read_row_data [N]
 );
+    logic signed [63:0] accumulators [N][N];
     logic signed [31:0] a_pipe [N][N+1];
     logic signed [31:0] b_pipe [N+1][N];
     logic a_valid_pipe [N][N+1];
@@ -28,10 +30,18 @@ module systolic_array #(
     for (genvar c = 0; c < N; c++) begin : columns
         assign b_pipe[0][c] = b_in[c];
         assign b_valid_pipe[0][c] = b_valid[c];
+        assign read_row_data[c] = accumulators[0][c];
     end
 
     for (genvar r = 0; r < N; r++) begin : pe_rows
         for (genvar c = 0; c < N; c++) begin : pe_columns
+            logic signed [63:0] drain_source;
+            if (r == N-1) begin : last_row
+                assign drain_source = '0;
+            end else begin : earlier_row
+                assign drain_source = accumulators[r+1][c];
+            end
+
             always_ff @(posedge clk) begin
                 if (!rst_n || clear) begin
                     a_pipe[r][c+1] <= '0;
@@ -50,10 +60,12 @@ module systolic_array #(
                 .clk,
                 .rst_n,
                 .clear,
+                .drain,
+                .drain_in(drain_source),
                 .enable(a_valid_pipe[r][c] && b_valid_pipe[r][c]),
                 .a(a_pipe[r][c]),
                 .b(b_pipe[r][c]),
-                .acc(c_out[r][c])
+                .acc(accumulators[r][c])
             );
         end
     end
